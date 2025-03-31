@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { ChildProcess, spawn } from 'child_process';
-import { CancellationToken, Disposable, Uri } from 'vscode';
+import { CancellationToken, Disposable, Uri, workspace } from 'vscode';
 import { logProcessSpawn, traceDebug, traceError } from './common/logging';
 import { DisposableStore } from './common/lifecycle';
 import { EnvironmentPath } from '@vscode/python-extension';
@@ -19,7 +19,16 @@ export async function launchTensorboard(
     const api = await PrivatePythonApiProvider.instance.getApi();
     const env = await api.getActivatedEnvironmentVariables(resource);
     const script = Uri.joinPath(ExtensionInfo.context.extensionUri, 'pythonFiles', 'tensorboard_launcher.py');
+    
+    // Get port from configuration
+    const config = workspace.getConfiguration('tensorBoard', resource);
+    const port = config.get<number>('port');
+    
     const args = [fileToCommandArgument(script.fsPath), fileToCommandArgument('./')];
+    if (port) {
+        args.push(port.toString());
+    }
+    
     logProcessSpawn(pythonEnv.path, args, './');
     return spawn(pythonEnv.path, args, { cwd: logDir, env });
 }

@@ -5,7 +5,7 @@ import mimetypes
 from tensorboard import program
 
 
-def main(logdir):
+def main(logdir, port=None):
     # Environment variable for PyTorch profiler TensorBoard plugin
     # to detect when it's running inside VS Code
     os.environ["VSCODE_TENSORBOARD_LAUNCH"] = "1"
@@ -15,7 +15,7 @@ def main(logdir):
 
     # Start TensorBoard using their Python API
     tb = program.TensorBoard()
-    tb.configure(bind_all=False, logdir=logdir)
+    tb.configure(bind_all=False, logdir=logdir, port=port)
     url = tb.launch()
     sys.stdout.write("TensorBoard started at %s\n" % (url))
     sys.stdout.flush()
@@ -30,7 +30,10 @@ def main(logdir):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
+    if len(sys.argv) >= 2:
         logdir = str(sys.argv[1])
+        port = int(sys.argv[2]) if len(sys.argv) > 2 else None
         sys.stdout.write("Starting TensorBoard with logdir %s" % (logdir))
-        main(logdir)
+        if port:
+            sys.stdout.write(" and port %d" % (port))
+        main(logdir, port)
